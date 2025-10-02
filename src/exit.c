@@ -23,6 +23,9 @@ char	*append_exit_status(char *res, int status, int *i)
 	return (res);
 }
 
+/*a simple change from 18 to 17 solved inconsistency
+in error message. Calculation of write message length
+was off by one originally*/
 void	ft_exit_numeric_error(char *arg)
 {
 	write(2, "minishell: exit: ", 17);
