@@ -75,7 +75,7 @@ void	ft_pwd(void)
 		perror("pwd error");
 		return ;
 	}
-	printf("%s\n", cwd);
+	ft_printf("%s\n", cwd);
 	free(cwd);
 }
 

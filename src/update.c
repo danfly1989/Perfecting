@@ -43,13 +43,13 @@ void	ft_echo(char **arr, size_t k)
 	}
 	while (arr[k + i] != NULL)
 	{
-		printf("%s", arr[k + i]);
+		ft_printf("%s", arr[k + i]);
 		i++;
 		if (arr[k + i] != NULL)
-			printf(" ");
+			ft_printf(" ");
 	}
 	if (newline)
-		printf("\n");
+		ft_printf("\n");
 }
 
 int	ft_var_name_only(char *str)

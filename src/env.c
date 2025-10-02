@@ -19,7 +19,7 @@ void	ft_env(t_dat *data)
 	cur = data->ev;
 	while (cur != NULL)
 	{
-		printf("%s=%s\n", cur->name, cur->value);
+		ft_printf("%s=%s\n", cur->name, cur->value);
 		cur = cur->next;
 	}
 }

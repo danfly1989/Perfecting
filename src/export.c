@@ -80,7 +80,7 @@ void	ft_print_export(t_va *head)
 	cur = head;
 	while (cur != NULL)
 	{
-		printf("declare -x %s=\"%s\"\n", cur->name, cur->value);
+		ft_printf("declare -x %s=\"%s\"\n", cur->name, cur->value);
 		cur = cur->next;
 	}
 }

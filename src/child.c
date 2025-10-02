@@ -109,7 +109,7 @@ void	ft_wait_children(pid_t *pids, int tot, int last_index)
 		{
 			signal_num = WTERMSIG(status);
 			if (signal_num == SIGQUIT)
-				(printf("quit: core dumped\n"), g_last_exit_status = 131);
+				(ft_printf("quit: core dumped\n"), g_last_exit_status = 131);
 			else if (signal_num == SIGINT)
 				(write(1, "\n", 1), g_last_exit_status = 130);
 		}
