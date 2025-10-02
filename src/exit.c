@@ -25,9 +25,9 @@ char	*append_exit_status(char *res, int status, int *i)
 
 void	ft_exit_numeric_error(char *arg)
 {
-	write(2, "minishell: exit: ", 18);
+	write(2, "minishell: exit: ", 17);
 	write(2, arg, ft_strlen(arg));
-	write(2, ": numeric argument required\n", 29);
+	write(2, ": numeric argument required\n", 28);
 }
 
 void	ft_exit(t_dat *data, size_t k)
