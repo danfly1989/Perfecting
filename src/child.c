@@ -34,7 +34,7 @@ void	ft_child_process(t_dat *d, char ***cmd, int **fd, size_t i)
 	if (!ft_validate_segment(cmd[i], 0, len))
 		exit(1);
 	ft_setup_io(fd, i, d->tot);
-	ft_close_pipes(fd, d->tot);
+	// ft_close_pipes(fd, d->tot);
 	ft_appropriate_child_signal(cmd[i][0]);
 	ft_parse_redirection(cmd[i], &r);
 	if (!ft_apply_redirections(&r, cmd[i]))
