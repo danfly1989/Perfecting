@@ -11,6 +11,9 @@
 /* ************************************************************************** */
 
 #include "minishell.h"
+#include <sys/stat.h>
+
+// Reminder that this is the only use of stat in the entire project
 
 /*Static helper function that exists only so that
 execute_pipeline can pass the last piped pid index
@@ -83,22 +86,27 @@ static void	ft_execve_error(char *cmd)
 
 void	ft_exec_command(t_dat *d, char **cmd)
 {
-	char	*cmd_path;
+	char		*cmd_path;
+	struct stat	st;
 
 	if (!cmd || !cmd[0] || !*cmd[0])
 		exit(127);
 	if (ft_is_pipe_builtin(cmd[0]))
-	{
-		ft_execute_builtin_in_child(d, cmd);
-		exit(g_last_exit_status);
-	}
+		(ft_execute_builtin_in_child(d, cmd), exit(g_last_exit_status));
 	cmd_path = ft_get_cmd_path(d, cmd[0], 0);
 	if (!cmd_path)
 	{
-		ft_putstr_fd("minishell: ", 2);
-		ft_putstr_fd(cmd[0], 2);
+		(ft_putstr_fd("minishell: ", 2), ft_putstr_fd(cmd[0], 2));
 		ft_putendl_fd(": command not found", 2);
 		exit(127);
+	}
+	if (stat(cmd_path, &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR)
+	{
+		ft_putstr_fd("minishell: ", 2);
+		ft_putstr_fd(cmd[0], 2);
+		ft_putendl_fd(": Is a directory", 2);
+		free(cmd_path);
+		exit(126);
 	}
 	execve(cmd_path, cmd, d->evs);
 	free(cmd_path);
