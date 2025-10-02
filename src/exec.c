@@ -60,7 +60,7 @@ void	ft_execute_pipeline(t_dat *d, char ***cmd)
 	}
 	pids = ft_fork_children(d, cmd, fd);
 	ft_close_pipes(fd, d->tot);
-	ft_wait_children(pids, d->tot, last_index);
+	ft_wait_children(pids, d->tot, last_index, cmd);
 	ft_set_main_signals();
 	ft_free_fd(fd);
 	free(pids);
@@ -96,15 +96,15 @@ void	ft_exec_command(t_dat *d, char **cmd)
 	cmd_path = ft_get_cmd_path(d, cmd[0], 0);
 	if (!cmd_path)
 	{
-		(ft_putstr_fd("minishell: ", 2), ft_putstr_fd(cmd[0], 2));
-		ft_putendl_fd(": command not found", 2);
+		//(ft_putstr_fd("minishell: ", 2), ft_putstr_fd(cmd[0], 2));
+		// ft_putendl_fd(": command not found", 2);
 		exit(127);
 	}
 	if (stat(cmd_path, &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR)
 	{
-		ft_putstr_fd("minishell: ", 2);
-		ft_putstr_fd(cmd[0], 2);
-		ft_putendl_fd(": Is a directory", 2);
+		// ft_putstr_fd("minishell: ", 2);
+		// ft_putstr_fd(cmd[0], 2);
+		// ft_putendl_fd(": Is a directory", 2);
 		free(cmd_path);
 		exit(126);
 	}

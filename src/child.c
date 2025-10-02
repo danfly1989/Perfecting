@@ -1,13 +1,13 @@
 /* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   child.c                                            :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: daflynn <daflynn@student.42berlin.de>      +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/09/13 19:56:15 by daflynn           #+#    #+#             */
-/*   Updated: 2025/09/13 19:56:21 by daflynn          ###   ########.fr       */
-/*                                                                            */
+/* */
+/* :::      ::::::::   */
+/* child.c                                            :+:      :+:    :+:   */
+/* +:+ +:+         +:+     */
+/* By: daflynn <daflynn@student.42berlin.de>      +#+  +:+       +#+        */
+/* +#+#+#+#+#+   +#+           */
+/* Created: 2025/09/13 19:56:15 by daflynn           #+#    #+#             */
+/* Updated: 2025/09/13 19:56:21 by daflynn          ###   ########.ft       */
+/* */
 /* ************************************************************************** */
 
 #include "minishell.h"
@@ -19,7 +19,6 @@ void	ft_appropriate_child_signal(char *str)
 	else
 		ft_set_child_signals();
 }
-
 void	ft_child_process(t_dat *d, char ***cmd, int **fd, size_t i)
 {
 	t_rdr	r;
@@ -33,18 +32,22 @@ void	ft_child_process(t_dat *d, char ***cmd, int **fd, size_t i)
 	ft_memset(&r, 0, sizeof(r));
 	if (!ft_validate_segment(cmd[i], 0, len))
 		exit(1);
+	// 1. Setup pipe I/O and close all inherited pipe file descriptors.
 	ft_setup_io(fd, i, d->tot);
-	// ft_close_pipes(fd, d->tot);
 	ft_appropriate_child_signal(cmd[i][0]);
+	// 2. Parse and apply file redirections (this will override pipe I/O if present)
 	ft_parse_redirection(cmd[i], &r);
 	if (!ft_apply_redirections(&r, cmd[i]))
 	{
 		ft_free_redirection(&r);
-		exit(1);
+		exit(1); // Exit with 1 for redirection errors
 	}
+	// 3. Execute the command
 	ft_exec_command(d, cmd[i]);
+	// If we reach here, exec failed
+	// Exit with 127 for "command not found" - parent will print error
+	exit(127);
 }
-
 /*Modified to collect an array of children in order to provide
 accurate child info to wait children and consistently get the
 correct last signal pid.*/
@@ -94,31 +97,66 @@ The temp last_exit_code variable was also removed because signals
 were simply never following that logic and it only randomly held
 the true last on occasion. It was incapable of dealing with
 their asynchronous nature */
-void	ft_wait_children(pid_t *pids, int tot, int last_index)
+void	ft_wait_children(pid_t *pids, int tot, int last_index, char ***cmd)
 {
-	int		status;
-	int		i;
-	int		signal_num;
-	pid_t	waited;
+	int status;
+	int i;
+	int signal_num;
+
+	signal(SIGINT, SIG_IGN);
 
 	i = 0;
 	while (i < tot)
 	{
-		(signal(SIGINT, SIG_IGN), waited = waitpid(-1, &status, 0));
-		if (WIFSIGNALED(status))
+		if (pids[i] != -1)
 		{
-			signal_num = WTERMSIG(status);
-			if (signal_num == SIGQUIT)
-				(ft_printf("quit: core dumped\n"), g_last_exit_status = 131);
-			else if (signal_num == SIGINT)
-				(write(1, "\n", 1), g_last_exit_status = 130);
-		}
-		else if (WIFEXITED(status))
-		{
-			if (waited == pids[last_index])
-				g_last_exit_status = WEXITSTATUS(status);
+			waitpid(pids[i], &status, 0);
+
+			// Parent prints error messages - no race condition!
+			if (WIFEXITED(status))
+			{
+				int exit_code = WEXITSTATUS(status);
+
+				// 127 means command not found
+				if (exit_code == 127 && cmd[i] && cmd[i][0])
+					ft_cmd_not_found(cmd[i][0]);
+
+				// 126 means permission denied / is a directory
+				if (exit_code == 126 && cmd[i] && cmd[i][0])
+				{
+					ft_putstr_fd("minishell: ", 2);
+					ft_putstr_fd(cmd[i][0], 2);
+					ft_putendl_fd(": Is a directory", 2);
+				}
+
+				// Only update global exit status for last command
+				if (i == last_index)
+					g_last_exit_status = exit_code;
+			}
+			else if (WIFSIGNALED(status))
+			{
+				signal_num = WTERMSIG(status);
+
+				// Only update for last command
+				if (i == last_index)
+				{
+					if (signal_num == SIGQUIT)
+					{
+						ft_printf("Quit: 3\n");
+						g_last_exit_status = 131;
+					}
+					else if (signal_num == SIGINT)
+					{
+						write(1, "\n", 1);
+						g_last_exit_status = 130;
+					}
+					else
+						g_last_exit_status = 128 + signal_num;
+				}
+			}
 		}
 		i++;
 	}
+
 	ft_set_main_signals();
 }

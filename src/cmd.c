@@ -50,15 +50,23 @@ char	*ft_get_cmd_path(t_dat *d, const char *cmd, int i)
 
 void	ft_cmd_not_found(char *cmd)
 {
-	char	*prefix;
-	char	*suffix;
+	char	*temp;
+	char	*msg;
+	size_t	len;
 
-	prefix = "minishell: ";
-	suffix = ": command not found\n";
-	write(2, prefix, ft_strlen(prefix));
-	write(2, cmd, ft_strlen(cmd));
-	write(2, suffix, ft_strlen(suffix));
-	exit(127);
+	// Build: "minishell: " + cmd
+	temp = ft_strjoin("minishell: ", cmd);
+	if (!temp)
+		return ;
+	// Build: "minishell: cmd" + ": command not found\n"
+	msg = ft_strjoin(temp, ": command not found\n");
+	free(temp);
+	if (!msg)
+		return ;
+	// Single atomic write
+	len = ft_strlen(msg);
+	write(2, msg, len);
+	free(msg);
 }
 
 void	ft_cmd_error(t_dat *data, char *line)
